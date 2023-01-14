@@ -7,6 +7,7 @@ import { useContext } from 'react';
 import { SessionContext } from '../../sessionContext';
 
 const Session =() => {
+    console.log("init");
     const sessionDet = useContext(SessionContext)
     const socket = new WebSocket(`ws://localhost:4000/session?name=${sessionDet.session}`);
     socket.addEventListener('open', function(event){
@@ -14,34 +15,50 @@ const Session =() => {
     });
     socket.addEventListener('message', function(event){
         console.log(`message from server ${event.data}`);
+        hljs.highlightBlock(ref.current,{
+            lineNodes: true,
+        });
     })
-
-    if(sessionDet){
-        console.log("sessionDet",sessionDet.session);
-    }
     const language = "js"
-    const initialCode = "console.log(1); const b = class()"
+    const initialCode = "Loading code"
     const ref = useRef(null);
     const [code, setCode] = useState(initialCode);
 
     useEffect(() => {
-        hljs.highlightBlock(ref.current);
-    }, [code]);
+        hljs.highlightBlock(ref.current,{
+            lineNodes: true,
+        });
+    }, [code | ""]);
+    useEffect(() => {
+        socket.addEventListener('message', function(event){
+            setCode(event.data);
+            hljs.highlightBlock(ref.current,{
+                lineNodes: true,
+            });
+        });
+    }, []);
+    
 
-    const sendMassage = () =>{
-        socket.send(code)
+    const sendMassage = (text) =>{
+        socket.send(text)
     }
 
     const handleCodeChange = e => {
-        ref.current = e.target
-        sendMassage()
+        console.log(e.target.innerText);
+        // setCode(e.target.innerText)
+        ref.current = e.target.textContent
+        // hljs.highlightBlock(code,{
+        //     lineNodes: true,
+        // });
+        sendMassage(e.target.textContent)
     }
     
 
     return (
         <div className='session'>
             <pre>
-                <code ref={ref} className={`hljs ${language}`} contentEditable onInput={handleCodeChange}>
+                <code ref={ref} className={`hljs ${language}`} contentEditable
+                 onInput={handleCodeChange}>
                     {code}
                 </code>
             </pre>

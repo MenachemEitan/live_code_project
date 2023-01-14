@@ -7,17 +7,33 @@ const { Server } = require('http');
 const DB = require('./lib/mongoController');
 const codes = new DB("code")
 const wsServer = new webSocket.Server({ server:server, path: "/session"})
+wsServer.broadcast = function broadcast(msg) {
+    console.log(`broadcasting   ${msg}` );
+    wsServer.clients.forEach(function each(client) {
+        client.send(msg);
+     });
+ }
+// wsServer.broadcast = function broadcast(sender, msg) {
+//     console.log(`broadcasting   ${msg}` );
+//     wsServer.clients.forEach(function each(client) {
+//         if (client !== sender) {
+//             client.send(msg);
+//         }
+//     });
+//  }
 
 wsServer.on('connection',async function connection(ws, req){
     const myCode = await codes.getByName(req.url.split("=")[1])
     console.log("my code ", myCode);
     console.log("new client connected");
-    ws.send(`the code is ${myCode.code}`);
+    ws.send(myCode?.code);
 
 
-    ws.on('message', function incoming(message){
+    ws.on('message', function incoming(messageAsBuffer){
+        const message = messageAsBuffer.toString()
         console.log(`received : ${message}`);
-        ws.send(`the cide is  ${message}`);
+        wsServer.broadcast(message);
+       
     });
 });
 

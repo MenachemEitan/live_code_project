@@ -35,6 +35,9 @@ const HomePage = () => {
                 <div >
                     <Link to={'/session'} className="big-beautiful-button" onClick={()=>{handleSubmit("class")}}>Class</Link>
                 </div>
+                <div >
+                    <Link to={'/teacher'} className="big-beautiful-button" >teacher</Link>
+                </div>
             </div>
         </div>
     );
